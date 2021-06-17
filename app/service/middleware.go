@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/gogf/gf/container/gmap"
 	"github.com/gogf/gf/net/ghttp"
 	"san616qi/app/model"
 )
@@ -29,6 +30,10 @@ func (s *middlewareService) Ctx(r *ghttp.Request) {
 	Context.Init(r,customCtx)
 	if users := Session.GetUser(r.Context()); users != nil {
 		customCtx.Users = users
+	} else {
+		customCtx.Users = &model.ContextUsers{
+			UsersMap: gmap.Map{},
+		}
 	}
 
 	// 执行下一个中间件

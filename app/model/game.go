@@ -12,3 +12,17 @@ import (
 type Game internal.Game
 
 // Fill with you ideas below.
+
+//以下部分是Request传过来的BO
+
+
+//以下部分是Reponse回去的VO
+type GameMainListRep struct {
+	GameMainList []*Game
+}
+
+
+//以下部分是参与Service的业务数据
+type Entity struct {
+	Games *Game
+}

@@ -109,7 +109,7 @@ func (s *userService) SignIn(ctx context.Context, passport, password string) (er
 
 	//进行处理,存入当前登录的user
 	//为了防止这里面的usermap是空的，如果为空要进行一次新的赋值
-	if err := Context.Get(ctx).Users.UsersMap.IsEmpty(); !err{
+	if err := Context.Get(ctx).Users.UsersMap.IsEmpty(); err {
 		Context.Get(ctx).Users.UsersMap = *gmap.New()
 	}
 

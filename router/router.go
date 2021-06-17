@@ -22,6 +22,7 @@ func init() {
 			service.Middleware.CORS,)
 
 		group.ALL("/user", api.User)
+		group.ALL("/game", api.Game)
 		group.Group("/", func(group *ghttp.RouterGroup) {
 			//group.Middleware(service.Middleware.Auth)
 
@@ -32,7 +33,13 @@ func init() {
 			//查询用户信息
 			group.ALL("/user/queryprofile/:userid", api.User.QueryProfile)
 		})
-		
+
+		group.ALL("/game", api.Game)
+		group.Group("/", func(group *ghttp.RouterGroup) {
+
+			group.ALL("/game/mainlist", api.Game.MainList)
+
+		})
 
 	})
 
