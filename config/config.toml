@@ -37,5 +37,8 @@
     # 自定义DAO生成配置(默认是读取database配置)
     [[gfcli.gen.dao]]
         link   = "mysql:root:123456@tcp(127.0.0.1:3306)/sanqi"
-        tables = "user"
+        tables = "game"
 
+    [[gfcli.gen.dao]]
+        link   = "mysql:root:123456@tcp(127.0.0.1:3306)/sanqi"
+        tables = "game_comment"

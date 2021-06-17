@@ -2,14 +2,10 @@ package main
 
 import (
 	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/net/ghttp"
+	_ "san616qi/boot"
+	_ "san616qi/router"
 )
 
 func main() {
-	//g.Server().Run()
-	s := g.Server()
-	s.BindHandler("/", func(r *ghttp.Request) {
-		r.Response.Write("哈喽世界！")
-	})
-	s.Run()
+	g.Server().Run()
 }

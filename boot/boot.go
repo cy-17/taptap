@@ -1,7 +1,7 @@
 package boot
 
 import (
-	_ "github.com/gogf/gf-demos/packed"
+	_ "san616qi/packed"
 
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/swagger"

@@ -5,6 +5,7 @@
 package model
 
 import (
+	"github.com/gogf/gf/os/gtime"
 	"san616qi/app/model/internal"
 )
 
@@ -15,20 +16,51 @@ type User internal.User
 
 //以下部分是Request传过来的BO
 
-//注册表单提交参数
+// UserApiSignUpReq 注册表单提交参数
 type UserApiSignUpReq struct {
-
 	Passport  string `v:"required|length:6,16#账号不能为空|账号长度应当在:min到:max之间"`
 	Password  string `v:"required|length:6,16#请输入确认密码|密码长度应当在:min到:max之间"`
 	Password2 string `v:"required|length:6,16|same:Password#密码不能为空|密码长度应当在:min到:max之间|两次密码输入不相等"`
 	Nickname  string
+}
 
+// UserApiSignInReq 登录表单提交参数
+type UserApiSignInReq struct {
+	Passport string `v:"required#账号不能为空"`
+	Password string `v:"required#密码不能为空"`
+}
+
+// UserApiUpdateProfile 修改个人信息提交的结构参数
+type UserApiUpdateProfileReq struct {
+	Sex          int    `v:"required#性别不可为空"`
+	Nickname     string `v:"required#昵称不可为空"`
+	Avatar       string
+	Phone        string `v:"length:6,16#账号长度应当在:min到:max之间"`
+	Introduction string
+	Birthday     *gtime.Time
+	Location     string
 }
 
 //以下部分是Reponse回去的VO
 
-
 //以下部分是参与Service的业务数据
 
+// UserServiceSignUpReq 注册业务参数
+type UserServiceSignUpReq struct {
+	Passport     string
+	Password     string
+	Nickname     string
+	CreateAt     *gtime.Time
+	LastAccessAt *gtime.Time
+}
 
-
+type UserServiceUpdateProfileReq struct {
+	Sex            int
+	Nickname       string
+	Avatar         string
+	Phone          string
+	Introduction   string
+	Birthday       *gtime.Time
+	Location       string
+	LastAccessAt *gtime.Time
+}

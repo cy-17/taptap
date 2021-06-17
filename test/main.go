@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/gogf/gf/util/gconv"
+	"github.com/gogf/gf/os/gtime"
 )
 
 // 注册输入参数
@@ -25,25 +25,10 @@ type UserApiSignUpReq struct {
 
 func main() {
 
-	u := &UserApiSignUpReq{
-		Passport:  "123",
-		Password:  "123",
-		Password2: "123",
-		Nickname:  "123",
-	}
-
-	m := UserServiceSignUpReq{
-		Passport: "123",
-		Password: "123",
-		Nickname: "123",
-	}
-
-	err := gconv.Struct(u, &m)
-	if err != nil {
-		return
-	}
+	//m := gmap.New()
+	m := gtime.Now()
 
 	fmt.Println(m)
-	fmt.Println(m.Aasdas)
+
 
 }
