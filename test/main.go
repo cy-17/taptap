@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"github.com/gogf/gf/os/gtime"
-)
+import "fmt"
 
 // 注册输入参数
 type UserServiceSignUpReq struct {
@@ -26,9 +23,11 @@ type UserApiSignUpReq struct {
 func main() {
 
 	//m := gmap.New()
-	m := gtime.Now()
-
-	fmt.Println(m)
-
+	//m := gtime.Now()
+	//
+	//fmt.Println(m)
+	a := 1
+	b := 0
+	fmt.Println(a ^ b)
 
 }

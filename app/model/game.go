@@ -17,12 +17,16 @@ type Game internal.Game
 
 
 //以下部分是Reponse回去的VO
+
+//主游戏列表
 type GameMainListRep struct {
 	GameMainList []*Game
 }
 
-
-//以下部分是参与Service的业务数据
-type Entity struct {
+//主游戏列表Entity
+type GameMainEntity struct {
 	Games *Game
 }
+
+
+//以下部分是参与Service的业务数据

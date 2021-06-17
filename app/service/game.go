@@ -12,9 +12,9 @@ var Game = gameService{}
 type gameService struct{}
 
 // 主游戏列表推荐
-func (s *gameService) MainList() (error, []model.Entity) {
+func (s *gameService) MainList() (error, []model.GameMainEntity) {
 
-	var games []model.Entity
+	var games []model.GameMainEntity
 
 	////先进行初始化
 	//var tempList = make([]*model.Game,0)

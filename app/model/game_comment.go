@@ -5,6 +5,7 @@
 package model
 
 import (
+	"github.com/gogf/gf/os/gtime"
 	"san616qi/app/model/internal"
 )
 
@@ -12,3 +13,45 @@ import (
 type GameComment internal.GameComment
 
 // Fill with you ideas below.
+
+//以下部分是Request传过来的BO
+type GameAddCommentApiReq struct {
+	Userid    int `v:"required#评论者用户id不可为空""`
+	Gameid    int `v:"required#评论的游戏id不可为空"`
+	Repliedid int
+	Pid       int
+	Content   string `v:"required#评论内容不可为空"`
+	CreateAt  *gtime.Time
+	Score     int `v:"required#游戏评价分数不可为空"`
+}
+
+//删除自己的评论
+type GameDelCommentApiReq struct {
+	CommentId int `v:"required#评论的id不可为空"`
+	Userid    int `v:"required#删除评论时用户id不可为空"`
+	Gameid    int `v:"required#评论的游戏id不可为空"`
+}
+
+//查询一个游戏下的所有评论
+type GameSelCommentApiReq struct {
+	Gameid int `v:"required#获取评论的游戏id不可为空"`
+	Userid int `v:"required#获取评论时候用户id不可为空"`
+}
+
+//以下部分是Reponse回去的VO
+
+//评论列表
+type GameCommentRep struct {
+	GameParentComment    *GameComment
+	GameChildCommentList []*GameComment
+	//CommentStatus        bool
+}
+
+//评论列表entity
+type GameCommentEntity struct {
+	GameCommentRep []*GameCommentRep
+	GameCommentStatus bool
+}
+
+//以下部分是参与Service的业务数据
+//type GameCommentServiceReq struct {}

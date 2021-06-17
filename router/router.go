@@ -41,6 +41,15 @@ func init() {
 
 		})
 
+		group.ALL("/game", api.GameComment)
+		group.Group("/", func(group *ghttp.RouterGroup) {
+
+			group.POST("/game/comment", api.GameComment.AddComment)
+			group.DELETE("/game/comment", api.GameComment.DelComment)
+			group.GET("/game/comment", api.GameComment.SelComment)
+
+		})
+
 	})
 
 }
