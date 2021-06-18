@@ -30,6 +30,7 @@ type gameColumns struct {
 	CoverImage     string //
 	DetailImages   string //
 	Tags           string //
+	Icon           string //
 }
 
 func NewGameDao() *GameDao {
@@ -47,6 +48,7 @@ func NewGameDao() *GameDao {
 			CoverImage:     "cover_image",
 			DetailImages:   "detail_images",
 			Tags:           "tags",
+			Icon:           "icon",
 		},
 	}
 }

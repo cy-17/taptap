@@ -38,7 +38,3 @@
     [[gfcli.gen.dao]]
         link   = "mysql:root:123456@tcp(127.0.0.1:3306)/sanqi"
         tables = "game"
-
-    [[gfcli.gen.dao]]
-        link   = "mysql:root:123456@tcp(127.0.0.1:3306)/sanqi"
-        tables = "game_comment"

@@ -19,4 +19,5 @@ type Game struct {
 	CoverImage     string      `orm:"cover_image"     json:"coverImage"`     //
 	DetailImages   string      `orm:"detail_images"   json:"detailImages"`   //
 	Tags           string      `orm:"tags"            json:"tags"`           //
+	Icon           string      `orm:"icon"            json:"icon"`           //
 }
