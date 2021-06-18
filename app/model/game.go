@@ -23,7 +23,7 @@ type GameProfile struct {
 	GameCommentScore *GameCommentScoreEntity
 }
 
-//卡片式游戏列表的简化Game信息
+//卡片式推荐的简化Game信息
 type GameInfo struct {
 	GameId int
 	GameName string
@@ -31,13 +31,32 @@ type GameInfo struct {
 	CoverImage string
 }
 
-//卡片式游戏列表的结构体信息
-type GameMainRep struct {
+//卡片式推荐的结构体信息
+type GameRecRep struct {
 	GameInfo *GameInfo
 	Score float64
 }
 
-//卡片式游戏列表的结构体列表
+//卡片式推荐列表的结构体列表
+type GameRecEntity struct {
+	GameRecListRep []*GameRecRep
+}
+
+//主游戏列表，icon形式
+type GameMainInfo struct {
+	GameId int
+	GameName string
+	Tags string
+	Icon string
+}
+
+//主游戏列表结构体形式
+type GameMainRep struct {
+	GameMainInfo *GameMainInfo
+	Score float64
+}
+
+//主游戏列表返回结构体
 type GameMainEntity struct {
 	GameMainListRep []*GameMainRep
 }

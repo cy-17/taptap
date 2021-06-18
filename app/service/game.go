@@ -12,11 +12,11 @@ var Game = gameService{}
 type gameService struct{}
 
 // 卡片式游戏列表推荐
-func (s *gameService) MainList(offset int) (error, *model.GameMainEntity) {
+func (s *gameService) RecList(offset int) (error, *model.GameRecEntity) {
 
 	//返回数据结构准备
-	entity := &model.GameMainEntity{
-		GameMainListRep: make([]*model.GameMainRep,0),
+	entity := &model.GameRecEntity{
+		GameRecListRep: make([]*model.GameRecRep,0),
 	}
 	//为简化信息list初始化
 	gameInfoList := make([]*model.GameInfo,0)
@@ -31,21 +31,21 @@ func (s *gameService) MainList(offset int) (error, *model.GameMainEntity) {
 		return errors.New("数据库查询失败"), nil
 	}
 
-	//组装GameMainRep
+	//组装GameRecRep
 	for _,v := range gameInfoList {
 
 		//初始化结构体
-		tempGameMainRep := &model.GameMainRep{}
+		tempGameRecRep := &model.GameRecRep{}
 
 		if err, temp := GameComment.DetailScore(v.GameId); err != nil {
 			return errors.New("数据库查询错误"), nil
 		} else {
-			tempGameMainRep.Score = temp.TotalScore
-			tempGameMainRep.GameInfo = v
+			tempGameRecRep.Score = temp.TotalScore
+			tempGameRecRep.GameInfo = v
 		}
 
 		//添加数据
-		entity.GameMainListRep = append(entity.GameMainListRep, tempGameMainRep)
+		entity.GameRecListRep = append(entity.GameRecListRep, tempGameRecRep)
 
 	}
 	

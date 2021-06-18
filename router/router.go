@@ -37,7 +37,7 @@ func init() {
 		//group.ALL("/game", api.Game)
 		group.Group("/", func(group *ghttp.RouterGroup) {
 
-			group.GET("/game/mainlist/:offset", api.Game.MainList)
+			group.GET("/game/reclist/:offset", api.Game.RecList)
 			group.GET("/game/gameprofile/:gameid", api.Game.GameProfile)
 
 		})

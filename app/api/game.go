@@ -13,7 +13,7 @@ var Game = new(gameApi)
 type gameApi struct{}
 
 // 卡片式游戏列表
-func (game *gameApi) MainList(r *ghttp.Request) {
+func (game *gameApi) RecList(r *ghttp.Request) {
 
 	var (
 		offset int
@@ -21,7 +21,7 @@ func (game *gameApi) MainList(r *ghttp.Request) {
 
 	offset = gconv.Int(r.Get("offset"))
 
-	if err, mainGameList := service.Game.MainList(offset); err != nil {
+	if err, mainGameList := service.Game.RecList(offset); err != nil {
 		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, "查询失败")
 	} else {
 		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, mainGameList)

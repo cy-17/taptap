@@ -224,8 +224,10 @@ func (gc *gameCommentService) CheckComment(r *model.GameAddCommentApiReq) error 
 
 	//评论item内容
 	content := r.Content
+	//获取分数
+	score := r.Score
 
-	//先校验分数或者评论内容
+	//先校验评论内容
 	if len(content) == 0 {
 		return errors.New("评论内容不可为空")
 	}
@@ -238,6 +240,12 @@ func (gc *gameCommentService) CheckComment(r *model.GameAddCommentApiReq) error 
 	} else if (pid == 0 && repliedid != 0) || (pid != 0 && repliedid == 0) {
 		return errors.New("如果要评论一条评论，那么被回复者的id和主评论id都要齐全")
 	}
+
+	//如果不是对评论进行评论，那么分数一定不能为空
+	if pid == 0 && score == 0 {
+		return errors.New("对游戏评论分数不可为空")
+	}
+
 
 	return nil
 
