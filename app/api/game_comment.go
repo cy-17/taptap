@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gogf/gf/net/ghttp"
 	"github.com/gogf/gf/os/gtime"
+	"github.com/gogf/gf/util/gconv"
 	"san616qi/app/common/consts"
 	"san616qi/app/common/response"
 	"san616qi/app/model"
@@ -31,7 +32,7 @@ func (gc *gameCommentApi) AddComment(r *ghttp.Request) {
 	if err := service.GameComment.AddComment(apiReq); err != nil {
 		response.JsonExit(r, consts.CurdCreatFailCode, 2, consts.CurdCreatFailMsg, err.Error())
 	} else {
-		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, "asda")
+		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, "评论成功，请继续踊跃发言")
 	}
 
 }
@@ -58,6 +59,8 @@ func (gc *gameCommentApi) DelComment(r *ghttp.Request) {
 
 // 查询某游戏所有评论
 func (gc *gameCommentApi) SelComment(r *ghttp.Request) {
+
+	//准备结构体接收参数
 	var (
 		//接收传递过来的查询游戏评论数据
 		apiReq *model.GameSelCommentApiReq
@@ -67,9 +70,49 @@ func (gc *gameCommentApi) SelComment(r *ghttp.Request) {
 		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, err.Error())
 	}
 
-	if err,commentList := service.GameComment.SelComment(apiReq); err != nil {
+	if err, commentList := service.GameComment.SelComment(apiReq); err != nil {
 		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, err.Error())
 	} else {
 		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, commentList)
 	}
+}
+
+// 查询评论下的子评论
+func (gc *gameCommentApi) SelChildComment(r *ghttp.Request) {
+
+	//准备结构体接收参数
+	var (
+		//接收传递过来查询子评论的数据
+		apiReq *model.GameSelChildCommentApiReq
+	)
+
+	if err := r.Parse(&apiReq); err != nil {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, err.Error())
+	}
+
+	if err, childCommentList := service.GameComment.SelChildComment(apiReq); err != nil {
+		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, err.Error())
+	} else {
+		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, childCommentList)
+	}
+
+}
+
+
+// 查询游戏的评分统计(游戏详情用）
+func (gc *gameCommentApi) DetailScore(r *ghttp.Request) {
+
+	var (
+		//接收游戏id参数
+		gameid int
+	)
+
+	gameid = gconv.Int(r.Get("gameid"))
+
+	if err,resultMap := service.GameComment.DetailScore(gameid); err != nil {
+		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, err.Error())
+	} else {
+		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, resultMap)
+	}
+
 }

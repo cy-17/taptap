@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/gogf/gf/net/ghttp"
-	"github.com/gogf/gf/os/gtime"
 	"github.com/gogf/gf/util/gconv"
 	"san616qi/app/common/consts"
 	"san616qi/app/common/response"
@@ -37,10 +36,6 @@ func (a *userApi) SignUp(r *ghttp.Request) {
 	if err := gconv.Struct(apiReq, &serviceReq); err != nil {
 		response.JsonExit(r, consts.ServerOccurredErrorCode, 2, consts.ServerOccurredErrorMsg, err.Error())
 	}
-
-	//把创建时间赋值
-	serviceReq.CreateAt = gtime.Now()
-	serviceReq.LastAccessAt = gtime.Now()
 
 	if err := service.User.SignUp(serviceReq); err != nil {
 		response.JsonExit(r, consts.CurdCreatFailCode, 2, consts.CurdCreatFailMsg, err.Error())

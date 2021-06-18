@@ -43,6 +43,19 @@ type UserApiUpdateProfileReq struct {
 
 //以下部分是Reponse回去的VO
 
+//封装返回的用户信息（没有敏感信息）
+type UserProfileRep struct {
+	UserId int
+	Sex int
+	Nickname string
+	Avatar string
+	Phone string
+	Introduction string
+	Location string
+	Birthday *gtime.Time
+	Passport string
+}
+
 //以下部分是参与Service的业务数据
 
 // UserServiceSignUpReq 注册业务参数

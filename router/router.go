@@ -22,7 +22,7 @@ func init() {
 			service.Middleware.CORS,)
 
 		group.ALL("/user", api.User)
-		group.ALL("/game", api.Game)
+		//group.ALL("/game", api.Game)
 		group.Group("/", func(group *ghttp.RouterGroup) {
 			//group.Middleware(service.Middleware.Auth)
 
@@ -34,19 +34,22 @@ func init() {
 			group.ALL("/user/queryprofile/:userid", api.User.QueryProfile)
 		})
 
-		group.ALL("/game", api.Game)
+		//group.ALL("/game", api.Game)
 		group.Group("/", func(group *ghttp.RouterGroup) {
 
-			group.ALL("/game/mainlist", api.Game.MainList)
+			group.GET("/game/mainlist/:offset", api.Game.MainList)
+			group.GET("/game/gameprofile/:gameid", api.Game.GameProfile)
 
 		})
 
-		group.ALL("/game", api.GameComment)
+		//group.ALL("/game", api.GameComment)
 		group.Group("/", func(group *ghttp.RouterGroup) {
 
 			group.POST("/game/comment", api.GameComment.AddComment)
 			group.DELETE("/game/comment", api.GameComment.DelComment)
-			group.GET("/game/comment", api.GameComment.SelComment)
+			group.GET("/game/comment/", api.GameComment.SelComment)
+			group.GET("/game/detailscore/:gameid", api.GameComment.DetailScore)
+			group.GET("/game/childcomment", api.GameComment.SelChildComment)
 
 		})
 

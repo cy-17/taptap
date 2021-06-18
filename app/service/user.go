@@ -7,7 +7,9 @@ import (
 	"github.com/gogf/gf/container/gmap"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gtime"
+	"github.com/gogf/gf/util/gconv"
 	"github.com/gomodule/redigo/redis"
+	"golang.org/x/crypto/bcrypt"
 	"san616qi/app/common/consts"
 	"san616qi/app/dao"
 	"san616qi/app/model"
@@ -43,12 +45,12 @@ func (s *userService) SignUp(r *model.UserServiceSignUpReq) error {
 			//为了防止A用户的nickname和B用户的passport相同导致的判断错误
 			//在设置key值得时候加一个后缀
 			if _, errSetPassport := g.Redis().Do("SET", r.Passport+"-port",
-				r.Passport,"EX",consts.RedisExpireTime); errSetPassport != nil {
+				r.Passport, "EX", consts.RedisExpireTime); errSetPassport != nil {
 				return errSetPassport
 			}
 
 			if _, errSetNickname := g.Redis().Do("SET", r.Nickname+"-nick",
-				r.Nickname,"EX",consts.RedisExpireTime); errSetNickname != nil {
+				r.Nickname, "EX", consts.RedisExpireTime); errSetNickname != nil {
 				return errSetNickname
 			}
 			return errors.New(fmt.Sprintf("mysql 账号 %s 已经存在", r.Passport))
@@ -76,16 +78,27 @@ func (s *userService) SignUp(r *model.UserServiceSignUpReq) error {
 				}
 				return errors.New(fmt.Sprintf("mysql 昵称 %s 已经存在", r.Nickname))
 			}
+
 			//设置到mysql。并在保存前进行一些必要数据的处理
+			//进行密码加密
+			var err2 error
+			r.Password, err2 = s.PasswordEncode(r.Password)
+			if err2 != nil {
+				return err2
+			}
+			//把创建时间赋值
+			r.CreateAt = gtime.Now()
+			r.LastAccessAt = gtime.Now()
+
 			if _, err := dao.User.Save(r); err != nil {
 				return err
 			}
 
 			//成功注册后设置到redis中，passport和nickname
-			if _, errSetPassport := g.Redis().Do("SET", r.Passport+"-port", r.Passport,"EX",consts.RedisExpireTime); errSetPassport != nil {
+			if _, errSetPassport := g.Redis().Do("SET", r.Passport+"-port", r.Passport, "EX", consts.RedisExpireTime); errSetPassport != nil {
 				return errSetPassport
 			}
-			if _, errSetNickname := g.Redis().Do("SET", r.Nickname+"-nick", r.Nickname,"EX",consts.RedisExpireTime); errSetNickname != nil {
+			if _, errSetNickname := g.Redis().Do("SET", r.Nickname+"-nick", r.Nickname, "EX", consts.RedisExpireTime); errSetNickname != nil {
 				return errSetNickname
 			}
 
@@ -96,15 +109,22 @@ func (s *userService) SignUp(r *model.UserServiceSignUpReq) error {
 }
 
 // 用户登录，成功的话就放进context里的hashmap
-func (s *userService) SignIn(ctx context.Context, passport, password string) (error, *model.User){
+func (s *userService) SignIn(ctx context.Context, passport, password string) (error, *model.UserProfileRep) {
 
+	//查询数据
 	var user *model.User
-	err := dao.User.Where("passport=? and password=?", passport, password).Scan(&user)
+	//返回VO
+	var userVO *model.UserProfileRep
+
+	err := dao.User.Where("passport=?", passport).Scan(&user)
 	if err != nil {
-		return errors.New("数据库查询错误"), &model.User{}
+		return errors.New("数据库查询错误"), nil
 	}
 	if user == nil {
-		return errors.New("账号或者密码错误"), &model.User{}
+		return errors.New("账号错误,不存在该用户"), nil
+	}
+	if err := s.PasswordDecode(password, user.Password); !err {
+		return errors.New("密码错误，请再次输入"), nil
 	}
 
 	//进行处理,存入当前登录的user
@@ -113,26 +133,30 @@ func (s *userService) SignIn(ctx context.Context, passport, password string) (er
 		Context.Get(ctx).Users.UsersMap = *gmap.New()
 	}
 
+	if err := gconv.Struct(user, &userVO); err != nil {
+		return errors.New("数据转换失败"), nil
+	}
+
 	//进行登录用户的记录
-	Context.Get(ctx).Users.UsersMap.Set(passport,user)
+	Context.Get(ctx).Users.UsersMap.Set(passport, userVO)
 
 	// 赋值到Session，以便其他请求检测是否有登陆
 	contextUser := &model.ContextUsers{
 		UsersMap: Context.Get(ctx).Users.UsersMap,
 	}
 	if err := Session.SetUser(ctx, contextUser); err != nil {
-		return err,nil
+		return err, nil
 	}
 
 	//设定上下文的已登录用户
-	Context.SetUsers(ctx,Context.Get(ctx).Users)
-	return nil,user
+	Context.SetUsers(ctx, Context.Get(ctx).Users)
+	return nil, userVO
 
 }
 
 // 判断用户是否已经登录
 func (s *userService) IsSignedIn(ctx context.Context, passport string) bool {
-	if v := Context.Get(ctx); v!= nil && v.Users.UsersMap.Contains(passport)  {
+	if v := Context.Get(ctx); v != nil && v.Users.UsersMap.Contains(passport) {
 		return true
 	}
 	return false
@@ -144,7 +168,7 @@ func (s *userService) UpdateProfile(userId int, r *model.UserServiceUpdateProfil
 	//更新一下用户access时间
 	r.LastAccessAt = gtime.Now()
 
-	if _, err := dao.User.Where("user_id=?",userId).Update(r); err != nil{
+	if _, err := dao.User.Where("user_id=?", userId).Update(r); err != nil {
 		return errors.New("数据库更新出错")
 	}
 	return nil
@@ -157,14 +181,13 @@ func (s *userService) QueryProfile(userId int) (error, *model.User) {
 	////查询用户返回的信息
 	var user *model.User
 
-	if err := dao.User.Where("user_id=?",userId).Scan(&user); err != nil {
-		return errors.New("数据库查询失败"),nil
+	if err := dao.User.Where("user_id=?", userId).Scan(&user); err != nil {
+		return errors.New("数据库查询失败"), nil
 	} else {
 		return nil, user
 	}
 
 }
-
 
 //
 //	CheckPassport
@@ -197,4 +220,29 @@ func (s *userService) CheckNickName(nickname string) bool {
 	} else {
 		return i == 0
 	}
+}
+
+// 密码加密
+func (s *userService) PasswordEncode(password string) (string, error) {
+
+	//进行加密
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", errors.New("加密处理错误")
+	} else {
+		return string(hash), nil
+	}
+
+}
+
+// 密码解密
+func (s *userService) PasswordDecode(loginword, password string) bool {
+
+	if err := bcrypt.CompareHashAndPassword([]byte(password),[]byte(loginword));
+	err != nil {
+		return false
+	} else {
+		return true
+	}
+
 }

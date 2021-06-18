@@ -15,17 +15,31 @@ type Game internal.Game
 
 //以下部分是Request传过来的BO
 
-
 //以下部分是Reponse回去的VO
 
-//主游戏列表
-type GameMainListRep struct {
-	GameMainList []*Game
+//游戏详情页
+type GameProfile struct {
+	Game *Game
+	GameCommentScore *GameCommentScoreEntity
 }
 
-//主游戏列表Entity
+//卡片式游戏列表的简化Game信息
+type GameInfo struct {
+	GameId int
+	GameName string
+	Introduction string
+	CoverImage string
+}
+
+//卡片式游戏列表的结构体信息
+type GameMainRep struct {
+	GameInfo *GameInfo
+	Score float64
+}
+
+//卡片式游戏列表的结构体列表
 type GameMainEntity struct {
-	Games *Game
+	GameMainListRep []*GameMainRep
 }
 
 

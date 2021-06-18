@@ -5,6 +5,7 @@
 package model
 
 import (
+	"github.com/gogf/gf/container/gmap"
 	"github.com/gogf/gf/os/gtime"
 	"san616qi/app/model/internal"
 )
@@ -22,7 +23,7 @@ type GameAddCommentApiReq struct {
 	Pid       int
 	Content   string `v:"required#评论内容不可为空"`
 	CreateAt  *gtime.Time
-	Score     int `v:"required#游戏评价分数不可为空"`
+	Score     int
 }
 
 //删除自己的评论
@@ -36,6 +37,14 @@ type GameDelCommentApiReq struct {
 type GameSelCommentApiReq struct {
 	Gameid int `v:"required#获取评论的游戏id不可为空"`
 	Userid int `v:"required#获取评论时候用户id不可为空"`
+	Offset int `v:"between:0,100000#offset异常，要在0-100之间"`
+	//Limit  int
+}
+
+//查询一个评论的子评论
+type GameSelChildCommentApiReq struct {
+	Comment_id int `v:"required#获取子评论时，评论id不可为空"`
+	Offset     int `v:"between:0,100000#offset异常，要在0-100之间"`
 }
 
 //以下部分是Reponse回去的VO
@@ -49,8 +58,32 @@ type GameCommentRep struct {
 
 //评论列表entity
 type GameCommentEntity struct {
-	GameCommentRep []*GameCommentRep
+	GameCommentRep    []*GameCommentRep
 	GameCommentStatus bool
+	ParentCommentNum  int
+	TotalCommentNum   int
+}
+
+//子评论列表
+type GameChildCommentRep struct {
+	GameCommentList []*GameComment
+}
+
+// 子评论列表entity
+type GameChildCommentEntity struct {
+	GameChildCommentRep *GameChildCommentRep
+}
+
+//评分包装VO
+type GameCommentScoreRep struct {
+	Score    int
+	Scorenum int
+}
+
+//评分包装EntityVO
+type GameCommentScoreEntity struct {
+	GameCommentScore gmap.Map
+	TotalScore       float64
 }
 
 //以下部分是参与Service的业务数据
