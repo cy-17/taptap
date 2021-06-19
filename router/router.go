@@ -40,6 +40,8 @@ func init() {
 			group.GET("/game/reclist/:offset", api.Game.RecList)
 			group.GET("/game/gameprofile/:gameid", api.Game.GameProfile)
 
+			group.POST("/game/mock", api.Game.GameMock)
+
 		})
 
 		//group.ALL("/game", api.GameComment)

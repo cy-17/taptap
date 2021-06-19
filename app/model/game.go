@@ -14,6 +14,17 @@ type Game internal.Game
 // Fill with you ideas below.
 
 //以下部分是Request传过来的BO
+type GameMock struct {
+	Title string
+	Icon string
+	Banner string
+	Tag []string
+	ShortDesc string
+	PublisherName string
+	DownloadDesc string
+	Introduction string
+	ScreenShot []string
+}
 
 //以下部分是Reponse回去的VO
 

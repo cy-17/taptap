@@ -20,4 +20,5 @@ type Game struct {
 	DetailImages   string      `orm:"detail_images"   json:"detailImages"`   //
 	Tags           string      `orm:"tags"            json:"tags"`           //
 	Icon           string      `orm:"icon"            json:"icon"`           //
+	Shortdesc      string      `orm:"shortdesc"       json:"shortdesc"`      //
 }
