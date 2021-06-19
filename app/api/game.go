@@ -53,6 +53,25 @@ func (game *gameApi) GameProfile(r *ghttp.Request) {
 
 }
 
+// 主游戏列表，排行榜展示
+func (game *gameApi) GameMainList(r *ghttp.Request) {
+
+	var (
+		classification int
+		offset int
+	)
+
+	classification = gconv.Int(r.Get("classification"))
+	offset = gconv.Int(r.Get("offset"))
+
+	if err, mainList := service.Game.GameMainList(classification, offset); err != nil {
+		response.JsonExit(r,consts.CurdSelectFailCode,2,consts.CurdSelectFailMsg,"主游戏列表获取失败")
+	} else {
+		response.JsonExit(r,consts.CurdStatusOkCode,0,consts.CurdStatusOkMsg,mainList)
+	}
+
+}
+
 // mock数据
 func (game *gameApi) GameMock(r *ghttp.Request) {
 
@@ -76,7 +95,7 @@ func (game *gameApi) GameMock(r *ghttp.Request) {
 			Tags: "",
 			DetailImages: "",
 			ReleaseAt: gtime.Now(),
-			Classification: rand.Intn(5),
+			Classification: rand.Intn(5)+1,
 		}
 		length := len(v.Tag)
 

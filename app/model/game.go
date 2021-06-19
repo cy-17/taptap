@@ -5,6 +5,7 @@
 package model
 
 import (
+	"github.com/gogf/gf/os/gtime"
 	"san616qi/app/model/internal"
 )
 
@@ -28,9 +29,44 @@ type GameMock struct {
 
 //以下部分是Reponse回去的VO
 
+//主游戏列表结构体
+type GameMainInfo struct {
+	GameId int
+	Icon string
+	GameName string
+	Tags []string
+	ShortDesc string
+}
+
+//主游戏列表拼装
+type GameMainRep  struct {
+	GameMainInfo *GameMainInfo
+	Score float64
+}
+
+// 主游戏列表返回结构体
+type GameMainEntity struct {
+	GameMainList []*GameMainRep
+}
+
+// tags、小图变为数组的Game对象，有改造
+type GameWithSlice struct {
+	GameId         int64
+	GameName       string
+	ReleaseAt      *gtime.Time
+	Author         string
+	Introduction   string
+	Classification int
+	CoverImage     string
+	DetailImages   []string
+	Tags           []string
+	Icon           string
+	Shortdesc      string
+}
+
 //游戏详情页
 type GameProfile struct {
-	Game *Game
+	Game *GameWithSlice
 	GameCommentScore *GameCommentScoreEntity
 }
 
@@ -38,8 +74,8 @@ type GameProfile struct {
 type GameInfo struct {
 	GameId int
 	GameName string
-	Introduction string
 	CoverImage string
+	ShortDesc string
 }
 
 //卡片式推荐的结构体信息
@@ -51,25 +87,6 @@ type GameRecRep struct {
 //卡片式推荐列表的结构体列表
 type GameRecEntity struct {
 	GameRecListRep []*GameRecRep
-}
-
-//主游戏列表，icon形式
-type GameMainInfo struct {
-	GameId int
-	GameName string
-	Tags string
-	Icon string
-}
-
-//主游戏列表结构体形式
-type GameMainRep struct {
-	GameMainInfo *GameMainInfo
-	Score float64
-}
-
-//主游戏列表返回结构体
-type GameMainEntity struct {
-	GameMainListRep []*GameMainRep
 }
 
 

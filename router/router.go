@@ -37,8 +37,12 @@ func init() {
 		//group.ALL("/game", api.Game)
 		group.Group("/", func(group *ghttp.RouterGroup) {
 
+			//卡片式推荐
 			group.GET("/game/reclist/:offset", api.Game.RecList)
+			//游戏详情
 			group.GET("/game/gameprofile/:gameid", api.Game.GameProfile)
+			//主游戏列表
+			group.GET("/game/mainlist/:classification/:offset", api.Game.GameMainList)
 
 			group.POST("/game/mock", api.Game.GameMock)
 
