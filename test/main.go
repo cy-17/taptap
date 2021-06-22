@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gogf/gf/frame/g"
+	"san616qi/app/model"
 )
 
 // 注册输入参数
@@ -106,8 +107,14 @@ func main() {
 	//	fmt.Println(c == nil)
 	//}
 
+	user := &model.User{
+		UserId: 99,
+		Nickname: "asdszvx",
+		Passport: "zhsdbxb",
+		Password: "14564e",
+	}
 
-	if _, err := g.Redis().Do("EXPIRE", "123",20); err != nil {
+	if _, err := g.Redis().Do("SET", "teststruct",user); err != nil {
 		//redis更新失败
 		fmt.Println(err)
 	}

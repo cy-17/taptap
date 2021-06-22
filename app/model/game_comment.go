@@ -49,11 +49,41 @@ type GameSelChildCommentApiReq struct {
 
 //以下部分是Reponse回去的VO
 
+//带有用户头像，昵称的评论结构体
+type ParentComment struct {
+	CommentId int64
+	UserId    int64
+	GameId    int64
+	RepliedId int64
+	Pid       int64
+	Content   string
+	CreateAt  *gtime.Time
+	Score     int    //评论分数
+	Nickname  string //用户昵称
+	Avatar    string //用户头像
+}
+
+//带有用户头像，昵称，回复昵称的评论结构体，没有分数
+type ChildComment struct {
+	CommentId       int64
+	UserId          int64
+	GameId          int64
+	RepliedId       int64
+	Pid             int64
+	Content         string
+	CreateAt        *gtime.Time
+	UserNickname    string //用户昵称
+	RepliedNickname string //回复谁的用户昵称
+	Avatar          string //用户头像
+}
+
 //评论列表
 type GameCommentRep struct {
-	GameParentComment    *GameComment
-	GameChildCommentList []*GameComment
-	//CommentStatus        bool
+	GameParentComment    *ParentComment
+	GameChildCommentList []*ChildComment
+	LikeStatus           int
+	LikeCount            int
+	ChildCount           int
 }
 
 //评论列表entity
@@ -66,7 +96,7 @@ type GameCommentEntity struct {
 
 //子评论列表
 type GameChildCommentRep struct {
-	GameCommentList []*GameComment
+	GameCommentList []*ChildComment
 }
 
 // 子评论列表entity

@@ -27,7 +27,7 @@ func (game *gameApi) RecList(r *ghttp.Request) {
 	offset = gconv.Int(r.Get("offset"))
 
 	if err, mainGameList := service.Game.RecList(offset); err != nil {
-		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, "查询失败")
+		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, err.Error())
 	} else {
 		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, mainGameList)
 	}
@@ -46,7 +46,7 @@ func (game *gameApi) GameProfile(r *ghttp.Request) {
 		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求的游戏id缺失")
 	}
 	if err, gameProfile := service.Game.GameProfile(gameid); err != nil {
-		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, "服务器查询出错")
+		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, err.Error())
 	} else {
 		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, gameProfile)
 	}
@@ -65,7 +65,7 @@ func (game *gameApi) GameMainList(r *ghttp.Request) {
 	offset = gconv.Int(r.Get("offset"))
 
 	if err, mainList := service.Game.GameMainList(classification, offset); err != nil {
-		response.JsonExit(r,consts.CurdSelectFailCode,2,consts.CurdSelectFailMsg,"主游戏列表获取失败")
+		response.JsonExit(r,consts.CurdSelectFailCode,2,consts.CurdSelectFailMsg,err.Error())
 	} else {
 		response.JsonExit(r,consts.CurdStatusOkCode,0,consts.CurdStatusOkMsg,mainList)
 	}

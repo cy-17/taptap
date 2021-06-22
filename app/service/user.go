@@ -163,30 +163,61 @@ func (s *userService) IsSignedIn(ctx context.Context, passport string) bool {
 }
 
 // 更新用户个人信息
+// 增加redis
 func (s *userService) UpdateProfile(userId int, r *model.UserServiceUpdateProfileReq) error {
 
 	//更新一下用户access时间
 	r.LastAccessAt = gtime.Now()
 
-	if _, err := dao.User.Where("user_id=?", userId).Update(r); err != nil {
-		return errors.New("数据库更新出错")
+	//组装redis个人信息key
+	key := "userprofile_" + gconv.String(userId%10)
+	//组装个人信息field
+	field := gconv.String(userId)
+
+	if _, err := g.Redis().Do("HSET",key,field,r); err != nil {
+		return errors.New("redis插入失败")
 	}
+
 	return nil
 
 }
 
 // 查询用户个人信息
-func (s *userService) QueryProfile(userId int) (error, *model.User) {
+// 增加redis
+func (s *userService) QueryProfile(userId int) (error, *model.UserServiceUpdateProfileReq) {
 
 	////查询用户返回的信息
-	var user *model.User
+	var user *model.UserServiceUpdateProfileReq
 
-	if err := dao.User.Where("user_id=?", userId).Scan(&user); err != nil {
-		return errors.New("数据库查询失败"), nil
+	//组装redis个人信息key
+	key := "userprofile_" + gconv.String(userId%10)
+	//组装个人信息field
+	field := gconv.String(userId)
+
+	//从redis读取并组装
+	if v, err := g.Redis().DoVar("HGET", key, field); err != nil {
+		return errors.New("redis查询错误"), nil
 	} else {
-		return nil, user
+		if !v.IsNil() {
+			err := gconv.Struct(v, &user)
+			if err != nil {
+				return errors.New("数据转换失败"), nil
+			}
+			return nil, user
+		} else {
+			if err := dao.User.Where("user_id=?", userId).Scan(&user); err != nil {
+				return errors.New("数据库查询失败"), nil
+			} else {
+				if _, err := g.Redis().Do("HSET", key, field, user); err != nil {
+					return errors.New("redis设置错误"), nil
+				} else {
+					return nil, user
+				}
+			}
+		}
 	}
 
+	return nil, nil
 }
 
 //
@@ -238,8 +269,8 @@ func (s *userService) PasswordEncode(password string) (string, error) {
 // 密码解密
 func (s *userService) PasswordDecode(loginword, password string) bool {
 
-	if err := bcrypt.CompareHashAndPassword([]byte(password),[]byte(loginword));
-	err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(loginword));
+		err != nil {
 		return false
 	} else {
 		return true

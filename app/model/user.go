@@ -77,3 +77,9 @@ type UserServiceUpdateProfileReq struct {
 	Location       string
 	LastAccessAt *gtime.Time
 }
+
+//带有昵称和头像的回复数据
+type UserAvatarAndNickname struct {
+	Avatar string
+	Nickname string
+}

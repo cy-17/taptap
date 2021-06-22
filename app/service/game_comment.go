@@ -112,8 +112,17 @@ func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, 
 		var commentChildList []*model.GameComment
 		//准备返回的评论Entity结构
 		var commentRep = model.GameCommentRep{
-			GameParentComment:    &model.GameComment{},
-			GameChildCommentList: make([]*model.GameComment, 0),
+			GameParentComment:    &model.ParentComment{},
+			GameChildCommentList: make([]*model.ChildComment, 0),
+			LikeStatus: 0,
+			LikeCount: 0,
+		}
+
+		//获取子评论总数
+		if childCount, err := dao.GameComment.Where("pid=?",v.CommentId).FindCount(); err != nil {
+			return errors.New("数据库查询错误"), nil
+		} else {
+			commentRep.ChildCount = childCount
 		}
 
 		//查询前五条子评论
@@ -121,8 +130,48 @@ func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, 
 			err != nil {
 			return errors.New("数据库查询错误"), nil
 		}
-		commentRep.GameParentComment = v
-		commentRep.GameChildCommentList = commentChildList
+
+		//组装主评论给类型
+		err := gconv.Struct(v, commentRep.GameParentComment)
+		if err != nil {
+			return errors.New("类型转化错误"), nil
+		}
+		//获取评论的头像和昵称
+		var an *model.UserAvatarAndNickname
+		if err := dao.User.Where("user_id=?",v.UserId).Scan(&an); err != nil {
+			return errors.New("数据库查询错误"), nil
+		}
+		//赋值头像和昵称
+		commentRep.GameParentComment.Nickname = an.Nickname
+		commentRep.GameParentComment.Avatar = an.Avatar
+
+		//处理子评论
+		for _, v := range commentChildList {
+
+			var childComment *model.ChildComment
+			err := gconv.Struct(v, &childComment)
+			if err != nil {
+				return errors.New("类型转化错误"), nil
+			}
+
+			//获取评论者头像昵称
+			var anc *model.UserAvatarAndNickname
+			if err := dao.User.Where("user_id=?",v.UserId).Scan(&anc); err != nil {
+				return errors.New("数据库查询错误"), nil
+			}
+			//获取被评论者昵称
+			var anr *model.UserAvatarAndNickname
+			if err := dao.User.Where("user_id=?",v.RepliedId).Scan(&anr); err != nil {
+				return errors.New("数据库查询错误"), nil
+			}
+
+			//组装子评论给
+			childComment.Avatar = anc.Avatar
+			childComment.UserNickname = anc.Nickname
+			childComment.RepliedNickname = anr.Nickname
+
+			commentRep.GameChildCommentList = append(commentRep.GameChildCommentList, childComment)
+		}
 
 		//添加结构体
 		commentEntity = append(commentEntity, &commentRep)
@@ -139,15 +188,13 @@ func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, 
 }
 
 // 获取更多子评论（每次加载10条)
-func (gc *gameCommentService) SelChildComment(r *model.GameSelChildCommentApiReq) (error, *model.GameChildCommentEntity) {
+func (gc *gameCommentService) SelChildComment(r *model.GameSelChildCommentApiReq) (error, *model.GameChildCommentRep) {
 
-	var entity *model.GameChildCommentEntity
+	var entity *model.GameChildCommentRep
 
 	//准备返回子评论的Entity结构
-	entity = &model.GameChildCommentEntity{
-		GameChildCommentRep: &model.GameChildCommentRep{
-			GameCommentList: make([]*model.GameComment,0),
-		},
+	entity = &model.GameChildCommentRep{
+		GameCommentList: make([]*model.ChildComment,0),
 	}
 	//获取子评论列表准备
 	var childCommentEntity = make([]*model.GameComment, 0)
@@ -170,7 +217,34 @@ func (gc *gameCommentService) SelChildComment(r *model.GameSelChildCommentApiReq
 		return errors.New("数据库查询错误"), nil
 	}
 
-	entity.GameChildCommentRep.GameCommentList = childCommentEntity
+	for _, v := range childCommentEntity {
+
+		var childComment *model.ChildComment
+
+		err := gconv.Struct(v, &childComment)
+		if err != nil {
+			return errors.New("类型转换错误"), nil
+		}
+
+		//获取评论者头像昵称
+		var anc *model.UserAvatarAndNickname
+		if err := dao.User.Where("user_id=?",v.UserId).Scan(&anc); err != nil {
+			return errors.New("数据库查询错误"), nil
+		}
+		//获取被评论者昵称
+		var anr *model.UserAvatarAndNickname
+		if err := dao.User.Where("user_id=?",v.RepliedId).Scan(&anr); err != nil {
+			return errors.New("数据库查询错误"), nil
+		}
+
+		//组装子评论数据
+		childComment.UserNickname = anc.Nickname
+		childComment.Avatar = anc.Avatar
+		childComment.RepliedNickname = anr.Nickname
+
+		entity.GameCommentList = append(entity.GameCommentList, childComment)
+
+	}
 
 	return nil, entity
 

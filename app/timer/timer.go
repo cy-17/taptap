@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/os/gtimer"
 	"github.com/gogf/gf/util/gconv"
 	"san616qi/app/dao"
+	"san616qi/app/model"
 	"strings"
 	"time"
 )
@@ -14,6 +15,7 @@ import (
 func init() {
 	gtimer.AddSingleton(10*time.Second, redisCommentLikeFlush)
 	gtimer.AddSingleton(10*time.Second, redisCommentLikeCountFlush)
+	gtimer.AddSingleton(24*time.Hour,redisUserProfileFlush)
 }
 
 //定时刷新点赞数量
@@ -75,5 +77,36 @@ func redisCommentLikeFlush() {
 	fmt.Println("执行中")
 
 	time.Sleep(10 * time.Second)
+}
+
+//定时刷新用户个人信息
+func redisUserProfileFlush() {
+
+	for i:=0;i<10;i++ {
+
+		//组装查询的key
+		key := "userprofile_" + gconv.String(i)
+
+		res, _ := g.Redis().DoVar("HGETALL", key)
+		resMap := gconv.Map(res)
+
+		for k,v := range resMap	{
+
+			var user *model.UserServiceUpdateProfileReq
+			err := gconv.Struct(v, &user)
+			if err != nil {
+				return
+			}
+
+			if _, err := dao.User.Where("user_id=?",gconv.Int64(k)).Update(user); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	time.Sleep(24*time.Hour)
+
 }
 
