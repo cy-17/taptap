@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/gogf/gf/frame/g"
+)
 
 // 注册输入参数
 type UserServiceSignUpReq struct {
@@ -20,14 +23,93 @@ type UserApiSignUpReq struct {
 	Nickname  string
 }
 
+const (
+	//本地保存的文件夹名称
+	upload_path string = "/files/"
+)
+
+var (
+	//BUCKET是你在存储空间的名称
+	accessKey = "o1CWnMXIWcff8H4umKJt0_TGkT634fYc8MuOwEAQ"
+	secretKey = "Zz3FBrHWN9JVUawhaitzpeRuKIvRo2Lm3BVjtTuK"
+	bucket1 = "scutsanqi"
+)
+
+// 自定义返回值结构体
+type MyPutRet struct {
+	Key    string
+	Hash   string
+	Fsize  int
+	Bucket string
+	Name   string
+}
+
+
 func main() {
 
-	//m := gmap.New()
-	//m := gtime.Now()
+	//七牛云测试
+	//localFile := "corn.png"
+	//bucket := bucket1
+	//key := "testqiniu"
+	//// 使用 returnBody 自定义回复格式
+	//putPolicy := storage.PutPolicy{
+	//	Scope:      bucket,
+	//	ReturnBody: `{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(x:name)"}`,
+	//}
+	//mac := qbox.NewMac(accessKey, secretKey)
+	//upToken := putPolicy.UploadToken(mac)
+	//cfg := storage.Config{}
+	//formUploader := storage.NewFormUploader(&cfg)
+	//ret := MyPutRet{}
+	//putExtra := storage.PutExtra{
+	//	Params: map[string]string{
+	//		"x:name": "github logo",
+	//	},
+	//}
+	//err := formUploader.PutFile(context.Background(), &ret, upToken, key, localFile, &putExtra)
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
+	//fmt.Println(ret.Bucket, ret.Key, ret.Fsize, ret.Hash, ret.Name)
+
+	//res, err := g.Redis().Do("HGET","ttt","ioul")
+	//if err != nil {
+	//	fmt.Println(res)
+	//	fmt.Println(err)
+	//} else {
+	//	fmt.Println(err)
+	//	fmt.Println(res)
+	//}
 	//
-	//fmt.Println(m)
-	a := 1
-	b := 0
-	fmt.Println(a ^ b)
+	//ress, err := g.Redis().DoVar("HGET","ttt","ioul")
+	//if err != nil {
+	//	fmt.Println(ress)
+	//	fmt.Println(err)
+	//} else {
+	//	fmt.Println(err)
+	//	fmt.Println(ress.IsNil())
+	//}
+
+	//count, err := dao.CommentLike.Where("comment_id=3 and user_id=2").FindCount()
+	//if err != nil {
+	//	fmt.Println(err)
+	//} else {
+	//	fmt.Println(count)
+	//}
+
+	//var c *model.CommentLike
+	//err := dao.CommentLike.Where("comment_id=4 and user_id=2").Scan(&c)
+	//if err != nil {
+	//	fmt.Println(err)
+	//} else {
+	//	fmt.Println(c == nil)
+	//}
+
+
+	if _, err := g.Redis().Do("EXPIRE", "123",20); err != nil {
+		//redis更新失败
+		fmt.Println(err)
+	}
 
 }

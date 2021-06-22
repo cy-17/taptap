@@ -2,8 +2,10 @@ package service
 
 import (
 	"github.com/gogf/gf/container/gmap"
+	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
 	"san616qi/app/model"
+	"time"
 )
 
 var Middleware = middlewareService{}
@@ -38,4 +40,12 @@ func (s *middlewareService) Ctx(r *ghttp.Request) {
 
 	// 执行下一个中间件
 	r.Middleware.Next()
+}
+
+func (s *middlewareService) Log(r *ghttp.Request) {
+
+	bT := time.Now()
+	r.Middleware.Next()
+	g.Log().Println(r.Response.Status, r.URL.Path, time.Since(bT))
+
 }
