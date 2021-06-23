@@ -24,6 +24,7 @@ type GameAddCommentApiReq struct {
 	Content   string `v:"required#评论内容不可为空"`
 	CreateAt  *gtime.Time
 	Score     int
+	Commentid int
 }
 
 //删除自己的评论
@@ -49,7 +50,7 @@ type GameSelChildCommentApiReq struct {
 
 //以下部分是Reponse回去的VO
 
-//带有用户头像，昵称的评论结构体
+//带有用户头像，昵称的父评论结构体
 type ParentComment struct {
 	CommentId int64
 	UserId    int64
@@ -63,7 +64,7 @@ type ParentComment struct {
 	Avatar    string //用户头像
 }
 
-//带有用户头像，昵称，回复昵称的评论结构体，没有分数
+//带有用户头像，昵称，回复昵称的子评论结构体，没有分数
 type ChildComment struct {
 	CommentId       int64
 	UserId          int64

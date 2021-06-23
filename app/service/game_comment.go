@@ -55,7 +55,29 @@ func (gc *gameCommentService) DelComment(r *model.GameDelCommentApiReq) error {
 
 }
 
+// 更新一条评论
+func (gc *gameCommentService) UpdateComment(r *model.GameAddCommentApiReq) error {
+
+	if err := gc.CheckComment(r); err != nil {
+		return err
+	}
+
+	if count, err := dao.GameComment.Where("comment_id=? and game_id=?", r.Commentid, r.Gameid).Update(r); err != nil {
+		return errors.New("数据库更新失败")
+	} else {
+		countt, _ := count.RowsAffected()
+
+		if countt == 0 {
+			return errors.New("评论更新异常，请检测评论id或者游戏id")
+		}
+	}
+
+	return nil
+
+}
+
 // 查询某游戏的所有评论（分页加载，加载10条主评论，每条主评论加载5条子评论)
+// 同时需要查找点赞数量
 func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, *model.GameCommentEntity) {
 
 	//准备返回评论的Entity结构
@@ -93,7 +115,7 @@ func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, 
 	}
 
 	//获取所有评论的总数
-	if temp, err := dao.GameComment.Where("game_id=?",gameid).FindCount(); err != nil {
+	if temp, err := dao.GameComment.Where("game_id=?", gameid).FindCount(); err != nil {
 		return errors.New("数据库查询错误"), nil
 	} else {
 		totalCommentNum = temp
@@ -114,12 +136,18 @@ func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, 
 		var commentRep = model.GameCommentRep{
 			GameParentComment:    &model.ParentComment{},
 			GameChildCommentList: make([]*model.ChildComment, 0),
-			LikeStatus: 0,
-			LikeCount: 0,
+			LikeStatus:           0,
+			LikeCount:            0,
+			ChildCount:           0,
 		}
 
+		//获取点赞状态
+		_, commentRep.LikeStatus = CommentLike.CommentLikeStatus(int(v.UserId), int(v.CommentId))
+		//获取点赞数量
+		_, commentRep.LikeCount = commentLikeStat.LikeCount(int(v.UserId), int(v.CommentId))
+
 		//获取子评论总数
-		if childCount, err := dao.GameComment.Where("pid=?",v.CommentId).FindCount(); err != nil {
+		if childCount, err := dao.GameComment.Where("pid=?", v.CommentId).FindCount(); err != nil {
 			return errors.New("数据库查询错误"), nil
 		} else {
 			commentRep.ChildCount = childCount
@@ -136,9 +164,10 @@ func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, 
 		if err != nil {
 			return errors.New("类型转化错误"), nil
 		}
+
 		//获取评论的头像和昵称
 		var an *model.UserAvatarAndNickname
-		if err := dao.User.Where("user_id=?",v.UserId).Scan(&an); err != nil {
+		if err := dao.User.Where("user_id=?", v.UserId).Scan(&an); err != nil {
 			return errors.New("数据库查询错误"), nil
 		}
 		//赋值头像和昵称
@@ -156,12 +185,12 @@ func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, 
 
 			//获取评论者头像昵称
 			var anc *model.UserAvatarAndNickname
-			if err := dao.User.Where("user_id=?",v.UserId).Scan(&anc); err != nil {
+			if err := dao.User.Where("user_id=?", v.UserId).Scan(&anc); err != nil {
 				return errors.New("数据库查询错误"), nil
 			}
 			//获取被评论者昵称
 			var anr *model.UserAvatarAndNickname
-			if err := dao.User.Where("user_id=?",v.RepliedId).Scan(&anr); err != nil {
+			if err := dao.User.Where("user_id=?", v.RepliedId).Scan(&anr); err != nil {
 				return errors.New("数据库查询错误"), nil
 			}
 
@@ -194,7 +223,7 @@ func (gc *gameCommentService) SelChildComment(r *model.GameSelChildCommentApiReq
 
 	//准备返回子评论的Entity结构
 	entity = &model.GameChildCommentRep{
-		GameCommentList: make([]*model.ChildComment,0),
+		GameCommentList: make([]*model.ChildComment, 0),
 	}
 	//获取子评论列表准备
 	var childCommentEntity = make([]*model.GameComment, 0)
@@ -213,7 +242,7 @@ func (gc *gameCommentService) SelChildComment(r *model.GameSelChildCommentApiReq
 		return errors.New("评论id不可缺失"), nil
 	}
 
-	if err := dao.GameComment.Where("pid=?",commentid).Offset((offset - 1)*5).Limit(limit).Scan(&childCommentEntity); err != nil {
+	if err := dao.GameComment.Where("pid=?", commentid).Offset((offset - 1) * 5).Limit(limit).Scan(&childCommentEntity); err != nil {
 		return errors.New("数据库查询错误"), nil
 	}
 
@@ -228,12 +257,12 @@ func (gc *gameCommentService) SelChildComment(r *model.GameSelChildCommentApiReq
 
 		//获取评论者头像昵称
 		var anc *model.UserAvatarAndNickname
-		if err := dao.User.Where("user_id=?",v.UserId).Scan(&anc); err != nil {
+		if err := dao.User.Where("user_id=?", v.UserId).Scan(&anc); err != nil {
 			return errors.New("数据库查询错误"), nil
 		}
 		//获取被评论者昵称
 		var anr *model.UserAvatarAndNickname
-		if err := dao.User.Where("user_id=?",v.RepliedId).Scan(&anr); err != nil {
+		if err := dao.User.Where("user_id=?", v.RepliedId).Scan(&anr); err != nil {
 			return errors.New("数据库查询错误"), nil
 		}
 
@@ -319,7 +348,6 @@ func (gc *gameCommentService) CheckComment(r *model.GameAddCommentApiReq) error 
 	if pid == 0 && score == 0 {
 		return errors.New("对游戏评论分数不可为空")
 	}
-
 
 	return nil
 

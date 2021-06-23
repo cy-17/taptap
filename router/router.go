@@ -58,7 +58,8 @@ func init() {
 
 			group.POST("/game/comment", api.GameComment.AddComment)
 			group.DELETE("/game/comment", api.GameComment.DelComment)
-			group.GET("/game/comment/", api.GameComment.SelComment)
+			group.GET("/game/comment", api.GameComment.SelComment)
+			group.PUT("/game/comment", api.GameComment.UpdateComment)
 			group.GET("/game/detailscore/:gameid", api.GameComment.DetailScore)
 			group.GET("/game/childcomment", api.GameComment.SelChildComment)
 

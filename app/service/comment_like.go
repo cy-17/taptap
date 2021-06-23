@@ -159,40 +159,41 @@ func (cls *commentLikeService) CommentLike(r *model.CommentLikeApiReq) error {
 	return nil
 }
 
-////获取点赞状态与数量
-//func (cls *commentLikeService) CommentLikeStatusAndCount(userid, commentid int) (error, int, int) {
-//
-//	//返回结果组装
-//	var status int
-//	var count int
-//
-//	//组装redis查询的key,field
-//	keyLike := "commentlike_" + gconv.String(commentid%5)
-//	keyCount := "commentlikecount" + gconv.String(commentid%5)
-//
-//	fieldLike := gconv.String(commentid) + "::" + gconv.String(userid)
-//	fieldCount := gconv.String(commentid)
-//
-//	if v, err := g.Redis().DoVar("HGET", keyLike, fieldLike); err != nil {
-//		return errors.New("redis查询错误"), 0, 0
-//	} else {
-//		if !v.IsNil() {
-//			//redis不为空
-//			status = gconv.Int(v)
-//		} else {
-//			//redis为空,去mysql查
-//			var cl *model.CommentLike
-//			if err := dao.CommentLike.Where("user_id=? and comment_id=?", userid, commentid).Scan(&cl); err != nil {
-//				return errors.New("mysql查询错误"), 0, 0
-//			} else {
-//				//
-//				if cl == nil {
-//					status = 0
-//				} else {
-//					status = cl.CommentLikeStat
-//				}
-//			}
-//		}
-//	}
-//
-//}
+//获取点赞状态
+func (cls *commentLikeService) CommentLikeStatus(userid, commentid int) (error, int) {
+
+	//返回结果组装
+	var status int
+
+	//组装redis查询的key,field
+	//"commentlike_commentid%5"---"commentid::userid---value"
+	keyLike := "commentlike_" + gconv.String(commentid%5)
+	fieldLike := gconv.String(commentid) + "::" + gconv.String(userid)
+
+
+	//先获取点赞状态
+	if v, err := g.Redis().DoVar("HGET", keyLike, fieldLike); err != nil {
+		return errors.New("redis查询错误"), 0
+	} else {
+		if !v.IsNil() {
+			//redis不为空
+			status = gconv.Int(v)
+		} else {
+			//redis为空,去mysql查
+			var cl *model.CommentLike
+			if err := dao.CommentLike.Where("user_id=? and comment_id=?", userid, commentid).Scan(&cl); err != nil {
+				return errors.New("mysql查询错误"), 0
+			} else {
+				//mysql也没有这个的评论，说明根本没有评论过
+				if cl == nil {
+					status = 0
+				} else {
+					status = cl.CommentLikeStat
+				}
+			}
+		}
+	}
+
+	return nil, status
+
+}

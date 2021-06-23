@@ -46,6 +46,6 @@ func (s *middlewareService) Log(r *ghttp.Request) {
 
 	bT := time.Now()
 	r.Middleware.Next()
-	g.Log().Println(r.Response.Status, r.URL.Path, time.Since(bT))
+	g.Log().Println(r.Method ,r.Response.Status, r.URL.Path, time.Since(bT))
 
 }

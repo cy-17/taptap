@@ -37,6 +37,26 @@ func (gc *gameCommentApi) AddComment(r *ghttp.Request) {
 
 }
 
+//更新自己的评论
+func (gc *gameCommentApi) UpdateComment(r *ghttp.Request) {
+
+	var (
+		apiReq *model.GameAddCommentApiReq
+	)
+
+	if err := r.Parse(&apiReq); err != nil {
+		response.JsonExit(r, consts.RequestParamLostCode,1,consts.RequestParamLostMsg,err.Error())
+	}
+	//更新创建时间
+	apiReq.CreateAt = gtime.Now()
+
+	if err := service.GameComment.UpdateComment(apiReq); err != nil {
+		response.JsonExit(r, consts.CurdUpdateFailCode, 2, consts.CurdUpdateFailMsg, err.Error())
+	} else {
+		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, "评论更新")
+	}
+}
+
 // 删除一条指定的评论
 func (gc *gameCommentApi) DelComment(r *ghttp.Request) {
 
