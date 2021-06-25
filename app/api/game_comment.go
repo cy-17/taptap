@@ -180,6 +180,34 @@ func (gc *gameCommentApi) SelChildComment(r *ghttp.Request) {
 
 }
 
+// 获取自己的评论
+func (gc *gameCommentApi) SelUserComment(r *ghttp.Request) {
+
+	var userid int
+	var offset int
+
+	offset = gconv.Int(r.Get("offset"))
+
+	//token逻辑
+	umap := r.GetParam("JWT_PAYLOAD")
+	umap = gconv.Map(umap)
+	if t, ok := umap.(map[string]interface{}); !ok {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	} else {
+		userid = gconv.Int(t["user_id"])
+	}
+	if userid == 0 {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	}
+
+	if err, userCommentList := service.GameComment.SelUserComment(userid, offset); err != nil {
+		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, err.Error())
+	} else {
+		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, userCommentList)
+	}
+
+}
+
 
 // 查询游戏的评分统计(游戏详情用）
 func (gc *gameCommentApi) DetailScore(r *ghttp.Request) {

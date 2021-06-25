@@ -71,6 +71,7 @@ func init() {
 			group.PUT("/game/comment", api.GameComment.UpdateComment)
 			group.POST("/game/comment", api.GameComment.AddComment)
 			group.DELETE("/game/comment", api.GameComment.DelComment)
+			group.GET("/game/usercomment/:offset", api.GameComment.SelUserComment)
 
 		})
 

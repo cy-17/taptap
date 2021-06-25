@@ -79,6 +79,13 @@ type ChildComment struct {
 	Avatar          string //用户头像
 }
 
+//用户自己的评论
+type GameUserCommentRep struct {
+	GameParentComment *ParentComment
+	LikeCount         int
+	ChildCount        int
+}
+
 //评论列表
 type GameCommentRep struct {
 	GameParentComment    *ParentComment
