@@ -45,7 +45,7 @@ func (gc *gameCommentApi) UpdateComment(r *ghttp.Request) {
 	)
 
 	if err := r.Parse(&apiReq); err != nil {
-		response.JsonExit(r, consts.RequestParamLostCode,1,consts.RequestParamLostMsg,err.Error())
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, err.Error())
 	}
 	//更新创建时间
 	apiReq.CreateAt = gtime.Now()
@@ -118,6 +118,26 @@ func (gc *gameCommentApi) SelChildComment(r *ghttp.Request) {
 
 }
 
+// 获取自己的评论
+func (gc *gameCommentApi) SelUserComment(r *ghttp.Request) {
+
+	var userid int
+	var offset int
+
+	offset = gconv.Int(r.Get("offset"))
+	userid = gconv.Int(r.Get("userid"))
+
+	if userid == 0 {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	}
+
+	if err, userCommentList := service.GameComment.SelUserComment(userid, offset); err != nil {
+		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, err.Error())
+	} else {
+		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, userCommentList)
+	}
+
+}
 
 // 查询游戏的评分统计(游戏详情用）
 func (gc *gameCommentApi) DetailScore(r *ghttp.Request) {
@@ -129,7 +149,7 @@ func (gc *gameCommentApi) DetailScore(r *ghttp.Request) {
 
 	gameid = gconv.Int(r.Get("gameid"))
 
-	if err,resultMap := service.GameComment.DetailScore(gameid); err != nil {
+	if err, resultMap := service.GameComment.DetailScore(gameid); err != nil {
 		response.JsonExit(r, consts.CurdSelectFailCode, 2, consts.CurdSelectFailMsg, err.Error())
 	} else {
 		response.JsonExit(r, consts.CurdStatusOkCode, 0, consts.CurdStatusOkMsg, resultMap)

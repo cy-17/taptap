@@ -17,7 +17,7 @@ type GameComment internal.GameComment
 
 //以下部分是Request传过来的BO
 type GameAddCommentApiReq struct {
-	Userid    int `v:"required#评论者用户id不可为空""`
+	Userid    int `v:"required#评论者用户id不可为空"`
 	Gameid    int `v:"required#评论的游戏id不可为空"`
 	Repliedid int
 	Pid       int
@@ -76,6 +76,13 @@ type ChildComment struct {
 	UserNickname    string //用户昵称
 	RepliedNickname string //回复谁的用户昵称
 	Avatar          string //用户头像
+}
+
+//用户自己的评论
+type GameUserCommentRep struct {
+	GameParentComment *ParentComment
+	LikeCount         int
+	ChildCount        int
 }
 
 //评论列表

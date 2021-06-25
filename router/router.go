@@ -20,8 +20,7 @@ func init() {
 		group.Middleware(
 			service.Middleware.Log,
 			service.Middleware.Ctx,
-			service.Middleware.CORS,)
-
+			service.Middleware.CORS)
 
 		//用户部分
 		group.ALL("/user", api.User)
@@ -62,6 +61,7 @@ func init() {
 			group.PUT("/game/comment", api.GameComment.UpdateComment)
 			group.GET("/game/detailscore/:gameid", api.GameComment.DetailScore)
 			group.GET("/game/childcomment", api.GameComment.SelChildComment)
+			group.GET("/game/usercomment/:userid/:offset", api.GameComment.SelUserComment)
 
 		})
 
@@ -89,7 +89,7 @@ func init() {
 		//点赞模块
 		group.Group("/", func(group *ghttp.RouterGroup) {
 
-			group.POST("/like/comment",api.CommentLike.CommentLike)
+			group.POST("/like/comment", api.CommentLike.CommentLike)
 
 		})
 
