@@ -16,12 +16,26 @@ var GameComment = new(gameCommentApi)
 type gameCommentApi struct{}
 
 // 为指定游戏增加一个评论（考虑有无pid，repliedId，commentId,userId）
+// token必选
 func (gc *gameCommentApi) AddComment(r *ghttp.Request) {
 
 	var (
 		//接收传递过来的发起评论的请求数据
-		apiReq *model.GameAddCommentApiReq
+		apiReq = &model.GameAddCommentApiReq{}
 	)
+
+	//token逻辑
+	umap := r.GetParam("JWT_PAYLOAD")
+	umap = gconv.Map(umap)
+	if t, ok := umap.(map[string]interface{}); !ok {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	} else {
+		apiReq.Userid = gconv.Int(t["user_id"])
+	}
+
+	if apiReq.Userid == 0 {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	}
 
 	if err := r.Parse(&apiReq); err != nil {
 		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, err.Error())
@@ -38,11 +52,25 @@ func (gc *gameCommentApi) AddComment(r *ghttp.Request) {
 }
 
 //更新自己的评论
+// token必选
 func (gc *gameCommentApi) UpdateComment(r *ghttp.Request) {
 
 	var (
-		apiReq *model.GameAddCommentApiReq
+		apiReq = &model.GameAddCommentApiReq{}
 	)
+
+	//token逻辑
+	umap := r.GetParam("JWT_PAYLOAD")
+	umap = gconv.Map(umap)
+	if t, ok := umap.(map[string]interface{}); !ok {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	} else {
+		apiReq.Userid = gconv.Int(t["user_id"])
+	}
+
+	if apiReq.Userid == 0 {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	}
 
 	if err := r.Parse(&apiReq); err != nil {
 		response.JsonExit(r, consts.RequestParamLostCode,1,consts.RequestParamLostMsg,err.Error())
@@ -58,12 +86,26 @@ func (gc *gameCommentApi) UpdateComment(r *ghttp.Request) {
 }
 
 // 删除一条指定的评论
+// token必选
 func (gc *gameCommentApi) DelComment(r *ghttp.Request) {
 
 	var (
 		//接收传递过来的删除评论数据
-		apiReq *model.GameDelCommentApiReq
+		apiReq = &model.GameDelCommentApiReq{}
 	)
+
+	//token逻辑
+	umap := r.GetParam("JWT_PAYLOAD")
+	umap = gconv.Map(umap)
+	if t, ok := umap.(map[string]interface{}); !ok {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	} else {
+		apiReq.Userid = gconv.Int(t["user_id"])
+	}
+
+	if apiReq.Userid == 0 {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	}
 
 	if err := r.Parse(&apiReq); err != nil {
 		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, err.Error())
@@ -78,13 +120,23 @@ func (gc *gameCommentApi) DelComment(r *ghttp.Request) {
 }
 
 // 查询某游戏所有评论
+// token
 func (gc *gameCommentApi) SelComment(r *ghttp.Request) {
 
 	//准备结构体接收参数
 	var (
 		//接收传递过来的查询游戏评论数据
-		apiReq *model.GameSelCommentApiReq
+		apiReq = &model.GameSelCommentApiReq{}
 	)
+
+	//token逻辑
+	umap := r.GetParam("JWT_PAYLOAD")
+	umap = gconv.Map(umap)
+	if t, ok := umap.(map[string]interface{}); !ok {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	} else {
+		apiReq.Userid = gconv.Int(t["user_id"])
+	}
 
 	if err := r.Parse(&apiReq); err != nil {
 		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, err.Error())
@@ -98,13 +150,23 @@ func (gc *gameCommentApi) SelComment(r *ghttp.Request) {
 }
 
 // 查询评论下的子评论
+// token
 func (gc *gameCommentApi) SelChildComment(r *ghttp.Request) {
 
 	//准备结构体接收参数
 	var (
 		//接收传递过来查询子评论的数据
-		apiReq *model.GameSelChildCommentApiReq
+		apiReq = &model.GameSelChildCommentApiReq{}
 	)
+
+	//token逻辑
+	umap := r.GetParam("JWT_PAYLOAD")
+	umap = gconv.Map(umap)
+	if t, ok := umap.(map[string]interface{}); !ok {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	} else {
+		apiReq.Userid= gconv.Int(t["user_id"])
+	}
 
 	if err := r.Parse(&apiReq); err != nil {
 		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, err.Error())

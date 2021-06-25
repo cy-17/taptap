@@ -4,12 +4,14 @@
 	serverRoot     = "public"
 	serverAgent    = "gf-demos"
 	logPath        = "/Users/lujunliang/go/src/san616qi/log/server"
+    #logPath        = "/home/gopath/src/san616qi/log/server"
 	nameToUriType  = 2
 	routeOverWrite = true
 
 # Logger configurations.
 [logger]
     path   = "/Users/lujunliang/go/src/san616qi/log"
+    #path   = "/home/gopath/src/san616qi/log"
     level  = "all"
     stdout = true
 

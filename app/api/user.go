@@ -86,7 +86,16 @@ func (a *userApi) UpdateProfile(r *ghttp.Request) {
 		serviceUpdateUser *model.UserServiceUpdateProfileReq
 		userId     int
 	)
-	userId = gconv.Int(r.Get("userid"))
+
+	//token逻辑
+	umap := r.GetParam("JWT_PAYLOAD")
+	umap = gconv.Map(umap)
+	if t, ok := umap.(map[string]interface{}); !ok {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	} else {
+		userId = gconv.Int(t["user_id"])
+	}
+
 	if userId == 0 {
 		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
 	}
@@ -107,10 +116,20 @@ func (a *userApi) UpdateProfile(r *ghttp.Request) {
 
 // 查询个人信息
 func (a *userApi) QueryProfile(r *ghttp.Request) {
+
 	var (
-		userId     int
+		userId int
 	)
-	userId = gconv.Int(r.Get("userid"))
+
+	//token逻辑
+	umap := r.GetParam("JWT_PAYLOAD")
+	umap = gconv.Map(umap)
+	if t, ok := umap.(map[string]interface{}); !ok {
+		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
+	} else {
+		userId = gconv.Int(t["user_id"])
+	}
+
 	if userId == 0 {
 		response.JsonExit(r, consts.RequestParamLostCode, 1, consts.RequestParamLostMsg, "请求缺乏用户id")
 	}

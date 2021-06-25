@@ -216,8 +216,6 @@ func (s *userService) QueryProfile(userId int) (error, *model.UserServiceUpdateP
 			}
 		}
 	}
-
-	return nil, nil
 }
 
 //

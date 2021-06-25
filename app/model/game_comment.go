@@ -17,7 +17,7 @@ type GameComment internal.GameComment
 
 //以下部分是Request传过来的BO
 type GameAddCommentApiReq struct {
-	Userid    int `v:"required#评论者用户id不可为空""`
+	Userid    int //`v:"required#评论者用户id不可为空""`
 	Gameid    int `v:"required#评论的游戏id不可为空"`
 	Repliedid int
 	Pid       int
@@ -30,14 +30,14 @@ type GameAddCommentApiReq struct {
 //删除自己的评论
 type GameDelCommentApiReq struct {
 	CommentId int `v:"required#评论的id不可为空"`
-	Userid    int `v:"required#删除评论时用户id不可为空"`
+	Userid    int //`v:"required#删除评论时用户id不可为空"`
 	Gameid    int `v:"required#评论的游戏id不可为空"`
 }
 
 //查询一个游戏下的所有评论
 type GameSelCommentApiReq struct {
 	Gameid int `v:"required#获取评论的游戏id不可为空"`
-	Userid int `v:"required#获取评论时候用户id不可为空"`
+	Userid int //`v:"required#获取评论时候用户id不可为空"`
 	Offset int `v:"between:0,100000#offset异常，要在0-100之间"`
 	//Limit  int
 }
@@ -46,6 +46,7 @@ type GameSelCommentApiReq struct {
 type GameSelChildCommentApiReq struct {
 	Comment_id int `v:"required#获取子评论时，评论id不可为空"`
 	Offset     int `v:"between:0,100000#offset异常，要在0-100之间"`
+	Userid     int
 }
 
 //以下部分是Reponse回去的VO

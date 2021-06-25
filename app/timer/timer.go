@@ -34,7 +34,6 @@ func redisCommentLikeCountFlush() {
 		//flush到db中
 		//拿到的数据为 commentid count
 		for k, v := range resMap {
-
 			if _, err := dao.CommentLikeStat.DB.Exec("insert into comment_like_stat(comment_id,like_count,create_at,update_at) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE like_count=VALUES(like_count),update_at=VALUES(update_at)",
 				gconv.Int64(k), gconv.Int(v), gtime.Now(), gtime.Now())
 				err != nil {
@@ -42,8 +41,6 @@ func redisCommentLikeCountFlush() {
 			}
 		}
 	}
-
-	fmt.Println("执行中")
 	time.Sleep(10 * time.Second)
 
 }
@@ -74,8 +71,6 @@ func redisCommentLikeFlush() {
 
 		}
 	}
-	fmt.Println("执行中")
-
 	time.Sleep(10 * time.Second)
 }
 

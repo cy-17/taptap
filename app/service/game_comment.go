@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/gogf/gf/container/gmap"
+	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/util/gconv"
 	"san616qi/app/dao"
 	"san616qi/app/model"
@@ -78,6 +79,7 @@ func (gc *gameCommentService) UpdateComment(r *model.GameAddCommentApiReq) error
 
 // 查询某游戏的所有评论（分页加载，加载10条主评论，每条主评论加载5条子评论)
 // 同时需要查找点赞数量
+// 加入redis逻辑
 func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, *model.GameCommentEntity) {
 
 	//准备返回评论的Entity结构
@@ -103,10 +105,40 @@ func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, 
 	}
 
 	//先检测两个id是否符合
-	if gameid == 0 || userid == 0 {
-		return errors.New("游戏id和用户id不可缺失"), nil
+	//if gameid == 0 || userid == 0 {
+	//	return errors.New("游戏id和用户id不可缺失"), nil
+	//}
+
+	if gameid == 0 {
+		return errors.New("游戏id不可缺失"), nil
 	}
 
+	//准备redis存储游戏评论的key,里面包含了游戏的id和offset
+	commentKey := "gamecomment_" + gconv.String(gameid%5)
+	commentField := gconv.String(gameid) + "::" + gconv.String(offset)
+
+	//把一个游戏的评论存在Redis中，因为可能很多人会看这个推荐的游戏
+	if v, err := g.Redis().DoVar("HGET", commentKey, commentField); err != nil {
+		return errors.New("redis查询错误"), nil
+	} else {
+		//如果查询数据不为空
+		if !v.IsNil() {
+			var entity *model.GameCommentEntity
+			err := gconv.Struct(v, &entity)
+			if err != nil {
+				return errors.New("类型转换错误"), nil
+			} else {
+				//把该游戏的评论延时
+				if _, err := g.Redis().Do("EXPIRE", commentKey, 1200); err != nil {
+					return errors.New("设置延时错误"), nil
+				}
+				//返回redis查询的结构体
+				return nil, entity
+			}
+		}
+	}
+
+	//走到这里说明要先从mysql查
 	//获取所有主评论的总数
 	if temp, err := dao.GameComment.Where("pid=0 and game_id=?", gameid).FindCount(); err != nil {
 		return errors.New("数据库查询错误"), nil
@@ -212,6 +244,16 @@ func (gc *gameCommentService) SelComment(r *model.GameSelCommentApiReq) (error, 
 	entity.ParentCommentNum = parentCommentNum
 	entity.TotalCommentNum = totalCommentNum
 
+	//返回结果前，存到redis中，因为如果很多个人浏览的游戏/文章，那么接下里必定也会经常被访问
+	//存到redis中访问更快
+	if _, err := g.Redis().Do("HSET", commentKey, commentField, entity); err != nil {
+		return errors.New("redis设置出错"), nil
+	}
+	if _, err := g.Redis().Do("EXPIRE", commentKey, 1200); err != nil {
+		return errors.New("redis延时出错"), nil
+	}
+
+	//返回当前offset的结果
 	return nil, entity
 
 }
@@ -280,6 +322,7 @@ func (gc *gameCommentService) SelChildComment(r *model.GameSelChildCommentApiReq
 }
 
 // 获取游戏评分统计(游戏详情)
+// 加入redis逻辑
 func (gc *gameCommentService) DetailScore(gameid int) (error, *model.GameCommentScoreEntity) {
 
 	//返回Entity准备
@@ -289,6 +332,28 @@ func (gc *gameCommentService) DetailScore(gameid int) (error, *model.GameComment
 
 	resultMap := *gmap.New()
 
+	//现在redis里面寻找
+	scoreKey := "gamescore_" + gconv.String(gameid%5)
+	scoreField := gconv.String(gameid)
+
+	if v, err := g.Redis().DoVar("HGET", scoreKey, scoreField); err != nil {
+		return errors.New("redis查询错误"), nil
+	} else {
+		//redis内存在
+		if !v.IsNil() {
+			err := gconv.Struct(v, &entity)
+			if err != nil {
+				return errors.New("类型转换错误"), nil
+			} else {
+				if _, err := g.Redis().Do("EXPIRE", scoreKey, 600); err != nil {
+					return errors.New("设置延时错误"), nil
+				}
+				return nil, entity
+			}
+		}
+	}
+	
+	//redis没有就到mysql找，找完存回redis
 	list, err := dao.GameComment.DB.GetAll("select score,count(*) as score_num from game_comment where game_id=? and pid=0 group by score", gameid)
 	if err != nil {
 		return errors.New("数据库查询错误"), nil
@@ -309,6 +374,16 @@ func (gc *gameCommentService) DetailScore(gameid int) (error, *model.GameComment
 	//返回总分
 	entity.GameCommentScore = resultMap
 	entity.TotalScore = (sum / 5.0) * 2.0
+
+	//评分详情存入redis
+	if _, err := g.Redis().Do("HSET", scoreKey, scoreField, entity); err != nil {
+		return errors.New("redis设置错误"), nil
+	}
+
+	//设置新的延时
+	if _, err := g.Redis().Do("EXPIRE", scoreKey, 600); err != nil {
+		return errors.New("设置延时错误"), nil
+	}
 
 	return nil, entity
 

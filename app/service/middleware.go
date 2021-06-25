@@ -4,6 +4,7 @@ import (
 	"github.com/gogf/gf/container/gmap"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
+	"san616qi/app/common/auth"
 	"san616qi/app/model"
 	"time"
 )
@@ -48,4 +49,11 @@ func (s *middlewareService) Log(r *ghttp.Request) {
 	r.Middleware.Next()
 	g.Log().Println(r.Method ,r.Response.Status, r.URL.Path, time.Since(bT))
 
+}
+
+func (s *middlewareService) Jwt(r *ghttp.Request) {
+
+	// 使用 gf-jwt中间件
+	auth.CustomGfJWTMiddleware.MiddlewareFunc()(r)
+	r.Middleware.Next()
 }

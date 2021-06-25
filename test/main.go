@@ -1,9 +1,13 @@
 package main
 
 import (
-	"fmt"
+	jwt "github.com/gogf/gf-jwt"
 	"github.com/gogf/gf/frame/g"
-	"san616qi/app/model"
+	"github.com/gogf/gf/net/ghttp"
+	"github.com/gogf/gf/os/glog"
+	"net/http"
+	"san616qi/app/common/auth"
+	"time"
 )
 
 // 注册输入参数
@@ -45,6 +49,42 @@ type MyPutRet struct {
 	Name   string
 }
 
+// 定义自定义中间件
+var CustomGfJWTMiddleware *jwt.GfJWTMiddleware
+
+// 重写该方法
+func init () {
+	// 重新定义GfJWTMiddleware
+	authMiddleware, err := jwt.New(&jwt.GfJWTMiddleware{
+		Realm:           "test zone",           // 用于展示中间件的名称
+		Key:             []byte("secret key"),  // 密钥
+		Timeout:         time.Minute * 5,       // token过期时间
+		MaxRefresh:      time.Minute * 5,
+		IdentityKey:     "id",                  // 身份验证的key值
+		TokenLookup:     "header: Authorization, query: token, cookie: jwt",    // token检索模式，用于提取token-> Authorization
+		TokenHeadName:   "Bearer",              // token在请求头时的名称，默认值为Bearer
+		// 客户端在header中传入Authorization 对一个值是Bearer + 空格 + token
+		TimeFunc:        time.Now,              // 测试或服务器在其他时区可设置该属性
+		Authenticator:   Authenticator,         // 根据登录信息对用户进行身份验证的回调函数
+		LoginResponse:   LoginResponse,         // 完成登录后返回的信息，用户可自定义返回数据，默认返回
+		RefreshResponse: auth.RefreshResponse,  // 刷新token后返回的信息，用户可自定义返回数据，默认返回
+		Unauthorized:    auth.Unauthorized,     // 处理不进行授权的逻辑
+		//IdentityHandler: auth.IdentityHandler,  // 解析并设置用户身份信息
+		PayloadFunc:     auth.PayloadFunc,      // 登录期间的回调的函数
+		//Authorizator:
+	})
+	if err != nil {
+		glog.Fatal("JWT Error:" + err.Error())
+	}
+	CustomGfJWTMiddleware = authMiddleware
+}
+
+// 自定义中间件
+func MiddlewareAuth(r *ghttp.Request) {
+	// 使用 gf-jwt中间件
+	CustomGfJWTMiddleware.MiddlewareFunc()(r)
+	r.Middleware.Next()
+}
 
 func main() {
 
@@ -107,16 +147,53 @@ func main() {
 	//	fmt.Println(c == nil)
 	//}
 
-	user := &model.User{
-		UserId: 99,
-		Nickname: "asdszvx",
-		Passport: "zhsdbxb",
-		Password: "14564e",
-	}
+	s := g.Server()
 
-	if _, err := g.Redis().Do("SET", "teststruct",user); err != nil {
-		//redis更新失败
-		fmt.Println(err)
-	}
+	// 登录，返回token
+	s.BindHandler("POST:/login", CustomGfJWTMiddleware.LoginHandler)
 
+	// 使用中间件
+	s.Group("/api", func(group *ghttp.RouterGroup) {
+		// 使用中间件
+		group.Middleware(MiddlewareAuth)
+
+		// 需要验证token的视图函数
+		group.GET("/get_info", func(r *ghttp.Request) {
+			r.Response.Write("api get_info...")
+		})
+
+		// 刷新token
+		group.POST("/refresh_token", CustomGfJWTMiddleware.RefreshHandler)
+	})
+
+	s.Run()
+
+}
+
+//身份验证器用于验证登录参数。
+//它必须返回用户数据作为用户标识符，它将存储在声明数组中。
+//检查错误（e）以确定适当的错误消息。
+func Authenticator(r *ghttp.Request) (interface{}, error) {
+	data := r.GetMap()
+	//if e := gvalid.CheckMap(data, auth.ValidationRules); e != nil {
+	//	return "", jwt.ErrFailedAuthentication
+	//}
+	if data["username"] == "admin" && data["password"] == "111111" {
+		return g.Map {
+			"username": data["username"],
+			"id":       1,
+		}, nil
+	}
+	return nil, jwt.ErrFailedAuthentication
+}
+
+// LoginResponse用于定义自定义的登录成功回调函数。
+func LoginResponse(r *ghttp.Request, code int, token string, expire time.Time) {
+	_ = r.Response.WriteJson(g.Map{
+		"id":   1,
+		"code":   http.StatusOK,
+		"token":  token,
+		"expire": expire.Format(time.RFC3339),
+	})
+	r.ExitAll()
 }

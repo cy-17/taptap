@@ -16,7 +16,7 @@ type CommentLike internal.CommentLike
 
 //点赞评论BO参数
 type CommentLikeApiReq struct {
-	UserId int `v:"required#点赞需要用户id"`
+	UserId int //`v:"required#点赞需要用户id"`
 	CommentId int `v:"required#点赞评论需要评论id"`
 	Status int `v:"required#点赞需要状态"`
 }

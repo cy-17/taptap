@@ -4,6 +4,7 @@ import (
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
 	"san616qi/app/api"
+	"san616qi/app/common/auth"
 	"san616qi/app/service"
 )
 
@@ -20,21 +21,27 @@ func init() {
 		group.Middleware(
 			service.Middleware.Log,
 			service.Middleware.Ctx,
-			service.Middleware.CORS,)
-
+			service.Middleware.CORS)
 
 		//用户部分
-		group.ALL("/user", api.User)
-		//group.ALL("/game", api.Game)
 		group.Group("/", func(group *ghttp.RouterGroup) {
-			//group.Middleware(service.Middleware.Auth)
+
+			//用户登录返回token
+			group.POST("/user/signin", auth.CustomGfJWTMiddleware.LoginHandler)
+			//用户注册
+			group.POST("/user/signup", api.User.SignUp)
+
+			//以下请求需要携带token
+			group.Middleware(service.Middleware.Jwt)
 
 			//查询用户登录状态
-			group.ALL("/user/issignedin/:passport", api.User.IsSignedIn)
+			//group.GET("/user/issignedin/:passport", api.User.IsSignedIn)
 			//更新用户信息
-			group.ALL("/user/updateprofile/:userid", api.User.UpdateProfile)
+			group.PUT("/user/updateprofile", api.User.UpdateProfile)
 			//查询用户信息
-			group.ALL("/user/queryprofile/:userid", api.User.QueryProfile)
+			group.GET("/user/queryprofile", api.User.QueryProfile)
+			//刷新用户token
+			group.GET("/user/refreshtoken", auth.CustomGfJWTMiddleware.RefreshHandler)
 		})
 
 		//游戏内容部分
@@ -56,12 +63,14 @@ func init() {
 		//group.ALL("/game", api.GameComment)
 		group.Group("/", func(group *ghttp.RouterGroup) {
 
-			group.POST("/game/comment", api.GameComment.AddComment)
-			group.DELETE("/game/comment", api.GameComment.DelComment)
 			group.GET("/game/comment", api.GameComment.SelComment)
-			group.PUT("/game/comment", api.GameComment.UpdateComment)
 			group.GET("/game/detailscore/:gameid", api.GameComment.DetailScore)
 			group.GET("/game/childcomment", api.GameComment.SelChildComment)
+
+			group.Middleware(service.Middleware.Jwt)
+			group.PUT("/game/comment", api.GameComment.UpdateComment)
+			group.POST("/game/comment", api.GameComment.AddComment)
+			group.DELETE("/game/comment", api.GameComment.DelComment)
 
 		})
 
@@ -89,7 +98,9 @@ func init() {
 		//点赞模块
 		group.Group("/", func(group *ghttp.RouterGroup) {
 
-			group.POST("/like/comment",api.CommentLike.CommentLike)
+			//点赞需要token
+			group.Middleware(service.Middleware.Jwt)
+			group.POST("/like/comment", api.CommentLike.CommentLike)
 
 		})
 
