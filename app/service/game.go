@@ -2,6 +2,8 @@ package service
 
 import (
 	"errors"
+	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/util/gconv"
 	"san616qi/app/dao"
 	"san616qi/app/model"
 	"strings"
@@ -54,16 +56,56 @@ func (s *gameService) RecList(offset int) (error, *model.GameRecEntity) {
 }
 
 // 游戏详情获取
+// redis逻辑
 func (s *gameService) GameProfile(gameid int) (error, *model.GameProfile) {
 
 	//准备返回的结构体
 	gameProfile := &model.GameProfile{
 		Game: &model.GameWithSlice{
-			Tags: make([]string,0),
-			DetailImages: make([]string,0),
+			Tags:         make([]string, 0),
+			DetailImages: make([]string, 0),
 		},
 	}
-	var game *model.Game
+	//用于查询游戏的结构体
+	game := &model.Game{}
+
+	//现在redis里面寻找
+	profileKey := "gameprofile_" + gconv.String(gameid%5)
+	profileField := gconv.String(gameid)
+
+	if v, err := g.Redis().DoVar("HGET", profileKey, profileField); err != nil {
+		return errors.New("redis查询错误"), nil
+	} else {
+		//redis内存在
+		if !v.IsNil() {
+
+			err := gconv.Struct(v, &game)
+			if err != nil {
+				return errors.New("类型转换错误"), nil
+			}
+			//把该游戏的详情延时
+			if _, err := g.Redis().Do("EXPIRE", profileKey, 600); err != nil {
+				return errors.New("设置延时错误"), nil
+			}
+		}
+		//else {
+		//	//redis内不存在，要在mysql里面查询
+		//	if err := dao.Game.Where("game_id=?", gameid).Scan(&game); err != nil {
+		//		return errors.New("数据库查询错误"), nil
+		//	}
+		//	//如果mysql存在，那就写入redis
+		//	if game != nil {
+		//		//写入redis
+		//		if _, err := g.Redis().Do("HSET", profileKey, profileField, game); err != nil {
+		//			return errors.New("redis设置错误"), nil
+		//		}
+		//		//把该游戏的详情延时
+		//		if _, err := g.Redis().Do("EXPIRE", profileKey, 1200); err != nil {
+		//			return errors.New("设置延时错误"), nil
+		//		}
+		//	}
+		//}
+	}
 
 	if err := dao.Game.Where("game_id=?", gameid).Scan(&game); err != nil {
 		return errors.New("数据库查询错误"), nil
@@ -85,6 +127,16 @@ func (s *gameService) GameProfile(gameid int) (error, *model.GameProfile) {
 	gameProfile.Game.Introduction = game.Introduction
 	gameProfile.Game.Tags = strings.Split(game.Tags, ",")
 	gameProfile.Game.DetailImages = strings.Split(game.DetailImages, ",")
+
+	//设置游戏详情到redis中
+	if _, err := g.Redis().Do("HSET",profileKey,profileField,gameProfile); err != nil {
+		return errors.New("redis设置错误"), nil
+	}
+
+	//把该游戏的详情延时
+	if _, err := g.Redis().Do("EXPIRE", profileKey, 600); err != nil {
+		return errors.New("设置延时错误"), nil
+	}
 
 	return nil, gameProfile
 }
